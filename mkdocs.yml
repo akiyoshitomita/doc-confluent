@@ -1,0 +1,13 @@
+site_name: Confluent ガイド
+repo_url: https://github.com/akiyoshitomita/docs-confluent
+repo_name: GitHub
+site_description: Cofluent に関する技術情報を記載しています。
+site_author: Akiyoshi Tomita
+copyright: '&copy; 2019 Akiyoshi Tomita'
+theme:
+  name: readthedocs
+  lang: jp
+docs_dir: 'docs'
+site_dir: '/var/www/doc-confluent/'
+markdown_extensions:
+  - admonition
