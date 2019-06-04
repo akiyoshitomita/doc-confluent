@@ -3,7 +3,7 @@ title: インストール(Ubuntu 18.04/apt)
 summary: Ubuntuに対して、aptを利用したインストール手順を記載
 authors:
   - A.Tomita
-date: 2019-05-30
+date: 2019-06-04
 ---
 
 # 全サーバ共通設定
@@ -29,6 +29,11 @@ Ubuntuのレジストリから、JDKをインストール
 :
 ```
 上記例では、`zookeeper`の名前で、`zoo1`,`zoo2`,`zoo3`のIPを解決できる
+
+!!! warning "注意事項"
+    自ホストを127.0.1.1など、Zookeeper間の通信インターフェース以外の
+    IPアドレスのエントリーがある場合、通信ポート以外のインターフェースで
+    ポートをオープンするため、Zookeeper間の通信ができない場合があります。
 
 !!! note "補足"
     hostsファイルではなくDNSに登録してもよい
@@ -103,7 +108,105 @@ autopurge.purgeInterval=24
     全てのZookeeperに対して、設定は全て一致させる必要があります。
 
 
-# Confluentレジストリについて
+OSの起動時にZookeeperを起動するように変更する
+
+    sudo systemctl enable confluent-zookeeper
+
+## kafka brokerのインストールと設定
+
+APTからkafka2.12のインストールします。
+
+    sudo apt install confluent-kafka-2.12
+
+!!! note "備考"
+    zookeeperとbrokerは、同一パッケージにバンドルされいるため個別のインストールはできません。
+
+`/etc/kafka/server.properties`ファイルを以下のように設定を変更
+
+```
+############################# Server Basics #############################
+
+# The id of the broker. This must be set to a unique integer for each broker.
+# broker.id=0
+broker.id.generation.enable=true
+```
+```
+############################# Zookeeper #############################
+
+# Zookeeper connection string (see zookeeper docs for details).
+# This is a comma separated host:port pairs, each corresponding to a zk
+# server. e.g. "127.0.0.1:3000,127.0.0.1:3001,127.0.0.1:3002".
+# You can also append an optional chroot string to the urls to specify the
+# root directory for all kafka znodes.
+# zookeeper.connect=localhost:2181
+zookeeper.connect=zookeeper:2181
+```
+* `broker.id`: ブローカーに対するユニークなIDをスタティック降る場合利用しますが、
+本書ではダイナミックに割り当てを行うためコメントアウトしています。
+* `broker.id.generation.enable`: broker.idを動的に割り当てる場合にtrueと設定します。
+* `zookeeper.connect`: zookeeperのホスト名(共通名)とポート番号を記載
+
+OSの起動時にbrokerを起動するように変更する
+
+    sudo systemctl enable confluent-kafka
+
+## Confluent Control Centerのインストールと設定
+
+
+!!! note "備考"
+    Confluent Control Centerは単体のパッケージインストールだけでは動作しなかったため
+    全機能のインストールを行う必要があります。
+    ( パッケージとかの依存関係が判明したら、追記します。)
+
+APTからインストール
+
+    sudo apt install confluent-platform-2.12
+
+!!! note "備考"
+    Confluent Control Center だけではなく、Kafka Brokerノードでも
+    上記のパッケージをインストール
+
+
+Control Centerのトピックをやり取りするBrokerに対して、```/etc/kafka/server.properties```ファイルの```metric.reporters```の設定を入れる
+
+```
+##################### Confluent Metrics Reporter #######################
+# Confluent Control Center and Confluent Auto Data Balancer integration
+#
+# Uncomment the following lines to publish monitoring data for
+# Confluent Control Center and Confluent Auto Data Balancer
+# If you are using a dedicated metrics cluster, also adjust the settings
+# to point to your metrics Kafka cluster.
+metric.reporters=io.confluent.metrics.reporter.ConfluentMetricsReporter
+confluent.metrics.reporter.bootstrap.servers=localhost:9092
+#
+# Uncomment the following line if the metrics cluster has a single broker
+#confluent.metrics.reporter.topic.replicas=1
+```
+
+設定を反映させるために、kafka brokerを再起動する
+    sudo systemctl restart confluent-kafka
+
+Confluent Control Centerノードで、```/etc/confluent-control-center/control-center-production.properties```に
+Kafka BrokerとZookeeperのアドレスを登録 ライセンスキーを入力
+
+```
+############################# Server Basics #############################
+
+# A comma separated list of Apache Kafka cluster host names (required)
+# NOTE: should not be localhost
+bootstrap.servers=kafka1:9092,kafka2:9092,kafka3:9092
+
+# A comma separated list of ZooKeeper host names (for ACLs)
+zookeeper.connect=zoo1:2181,zoo2:2181,zoo3:2181
+```
+```
+# License string for the Control Center
+confluent.controlcenter.license=XyZ
+```
+
+
+# Confluent APTレジストリについて
 
 ## 参考資料 Confluent5.2 パッケージ一覧
 
