@@ -3,7 +3,7 @@ title: Confluent関連 確認方法
 summary: 動作確認オペレーションについて記載します。 
 authors:
   - A.Tomita 
-date: 2019-06-04 
+date: 2019-06-10
 ---
 
 # 動作確認
@@ -40,3 +40,25 @@ Mode: follower
 Node count: 30
 Connection closed by foreign host.
 ```
+
+## 内部情報確認 
+
+zookeeperは、Windowsのレジストリのような階層型データベースです。
+Confluent Zookeeperにはzookeeper-shellにより、内部を確認することができます。
+
+    zookeeper-shell 127.0.0.1:2181
+
+zookeeper-shellの基本的な使用方法
+
+データやパス一覧を調べる場合、`ls`コマンドを利用する  
+必ず、コマンドにパス属性を付ける必要があります。
+
+    ls /
+
+データの中身を確認する場合は、`get`コマンドを利用します。  
+必ずコマンドにパス属性を付ける必要があります。
+
+    get /
+
+終了する場合は、`quit`と入力することで終了します。
+

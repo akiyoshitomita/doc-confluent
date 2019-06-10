@@ -11,3 +11,6 @@ docs_dir: 'docs'
 site_dir: '/var/www/doc-confluent/'
 markdown_extensions:
   - admonition
+  - mdx_math
+extra_javascript: 
+  - http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML

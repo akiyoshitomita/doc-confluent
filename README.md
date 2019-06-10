@@ -15,7 +15,7 @@
 ※　予期無く環境を変更する可能性があります。
 
 * [MkDocks 1.0.4](https://pypi.org/project/mkdocs/) (From pip3/ubuntu 18.04)
-
+* [python-markdown-math 0.6](https://pypi.org/project/python-markdown-math/)
 
 ## ドキュメントライセンスについて
 
